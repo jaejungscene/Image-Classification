@@ -205,8 +205,6 @@ def validate(val_loader, model, criterion, epoch, args):
     return top1.avg, top5.avg, losses.avg
 
 
-
-
 if __name__ == '__main__':
     if args.wandb == True:
         if args.net_type.endswith('resnet'):
@@ -214,5 +212,4 @@ if __name__ == '__main__':
         else:
             temp = (args.net_type+'_'+args.dataset+'_'+'b'+str(args.batch_size)+'_'+'s'+str(args.insize)+'_distil-'+str(args.distil))
         wandb.init(project='self-directed-research', name=temp, entity='jaejungscene')
-    
     run()

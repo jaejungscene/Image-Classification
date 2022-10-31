@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch
 from pytorch_pretrained_vit import ViT
 from torchvision import models
-import resnet as RN
+import model.resnet as RN
 from distillationloss import DistillationLoss
 
 def create_criterion(args, numclass):
@@ -84,26 +84,28 @@ def create_optimizer(args, model):
 
 
 def create_model(args, numberofclass):
-    if args.net_type == 'resnet':
-        model = RN.ResNet(args.dataset, args.depth, numberofclass, args.insize, args.bottleneck)
-    elif args.net_type == 'se-resnet':
-        model = RN.ResNet(args.dataset, args.depth, numberofclass, args.insize, args.bottleneck, se=True)
-    elif args.net_type == 'cbam-resnet':
-        model = RN.ResNet(args.dataset, args.depth, numberofclass, args.insize, args.bottleneck, cbam=True)
-    elif args.net_type == 'pretrained-resnet':
-        model = create_PT_resnet50(numberofclass, args.insize, args.depth)
-    elif args.net_type == 'pretrained-vit':
-        model = create_PT_ViT(numberofclass, args.insize)
-    elif args.net_type == 'pretrained-deit':
-        model = create_PT_DeiT(numberofclass, args.insize, args.distil)
-    elif args.net_type == 'pretrained-deit-t':
-        model = create_PT_DeiT(numberofclass, args.insize, args.distil, tiny=True)
-    else:
-        raise Exception('unknown network architecture: {}'.format(args.net_type))
+    model = getattr(RN,"ResNet")('cifar', 50,100,224)
     print(model)
-    return model
+    # if args.net_type == 'resnet':
+    #     model = RN.ResNet(args.dataset, args.depth, numberofclass, args.insize, args.bottleneck)
+    # elif args.net_type == 'se-resnet':
+    #     model = RN.ResNet(args.dataset, args.depth, numberofclass, args.insize, args.bottleneck, se=True)
+    # elif args.net_type == 'cbam-resnet':
+    #     model = RN.ResNet(args.dataset, args.depth, numberofclass, args.insize, args.bottleneck, cbam=True)
+    # elif args.net_type == 'pretrained-resnet':
+    #     model = create_PT_resnet50(numberofclass, args.insize, args.depth)
+    # elif args.net_type == 'pretrained-vit':
+    #     model = create_PT_ViT(numberofclass, args.insize)
+    # elif args.net_type == 'pretrained-deit':
+    #     model = create_PT_DeiT(numberofclass, args.insize, args.distil)
+    # elif args.net_type == 'pretrained-deit-t':
+    #     model = create_PT_DeiT(numberofclass, args.insize, args.distil, tiny=True)
+    # else:
+    #     raise Exception('unknown network architecture: {}'.format(args.net_type))
+    # print(model)
+    # return model
 
-
+create_model("asdf","sdf")
 
 def create_PT_ViT(numclass, insize, num_model=0):
     model_name = {0:'B_16', 1:'B_32', 2:'L_16', 3:'L_32'}
@@ -148,15 +150,4 @@ def create_PT_resnet50(numclass, insize, depth):
         model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
         model.fc = nn.Linear(512, numclass)
     return model
-
-
-# @InProceedings{pmlr-v139-touvron21a,
-#   title =     {Training data-efficient image transformers &amp; distillation through attention},
-#   author =    {Touvron, Hugo and Cord, Matthieu and Douze, Matthijs and Massa, Francisco and Sablayrolles, Alexandre and Jegou, Herve},
-#   booktitle = {International Conference on Machine Learning},
-#   pages =     {10347--10357},
-#   year =      {2021},
-#   volume =    {139},
-#   month =     {July}
-# }
 
