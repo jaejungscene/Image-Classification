@@ -1,15 +1,29 @@
 import time
 import datetime
 import torch
-
+import wandb
+import random
+import os
+import numpy as np
 from args import get_args_parser
 from setup import setup
 from dataset import get_dataset, get_dataloader
-from resnet import create_resnet
+from model.resnet import create_resnet
 from optimizer import get_optimizer_and_scheduler, get_scaler_criterion
 from metric import Metric, Accuracy, reduce_mean
 from utils import print_metadata, save_checkpoint, get_ema_ddp_model, resume_from_checkpoint
 from log import Result
+
+
+def seed_everything(seed):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = True
+seed_everything(41) # Seed 고정
 
 
 @torch.inference_mode()
@@ -207,6 +221,8 @@ def run(args):
 
         if args.use_wandb:
             args.log({'train_loss':train_loss, 'val_loss':val_loss, 'top1':top1, 'top5':top5}, metric=True)
+            wandb.log({'train_loss':train_loss, 'val_loss':val_loss, 'top1':top1, 'top5':top5})
+
 
         if best_acc < top1:
             best_acc = top1
@@ -231,4 +247,5 @@ def run(args):
 if __name__ == '__main__':
     args_parser = get_args_parser()
     args = args_parser.parse_args()
+    wandb.init(project='comparsion', name="resnet18-han", entity='jaejungscene')
     run(args)

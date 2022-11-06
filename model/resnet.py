@@ -1,7 +1,7 @@
 import math
 import torch
 import torch.nn as nn
-from module import Bottleneck, BasicBlock
+from model.module import Bottleneck, BasicBlock
 
 
 __model__ = [
@@ -55,9 +55,9 @@ __model__ = [
 ]
 
 
-def create_model(model_name, args):
-    model = getattr('ResNet')('cifar', 50,100,224)
-    return model
+# def create_model(model_name, args):
+#     model = getattr('ResNet')('cifar', 50,100,224)
+#     return model
 
 
 class ResNet(nn.Module):
@@ -95,6 +95,7 @@ class ResNet(nn.Module):
         else: # if dataset is imagenet, or input size is (224,224) in cifar
             blocks ={18: BasicBlock, 34: BasicBlock, 50: Bottleneck, 101: Bottleneck, 152: Bottleneck, 200: Bottleneck}
             layers ={18: [2, 2, 2, 2], 34: [3, 4, 6, 3], 50: [3, 4, 6, 3], 101: [3, 4, 23, 3], 152: [3, 8, 36, 3], 200: [3, 24, 36, 3]}
+            print(depth)
             assert layers[depth], 'invalid detph for ResNet (depth should be one of 18, 34, 50, 101, 152, and 200)'
             self.inplanes = 64
             self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False)

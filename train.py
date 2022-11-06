@@ -9,6 +9,7 @@ import dataset
 import create
 import numpy as np
 import wandb
+import random
 from datetime import datetime
 from log import save_checkpoint, printSave_one_epoch, printSave_start_condition, printSave_end_state
 from utils import accuracy, adjust_learning_rate, AverageMeter, get_learning_rate
@@ -20,6 +21,7 @@ import torch.optim
 import torch.utils.data
 import torch.utils.data.distributed
 import torchvision.models as models
+from optimizer import get_optimizer_and_scheduler
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -31,6 +33,16 @@ result_folder_name = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 best_err1 = 100
 best_err5 = 100
 
+
+def seed_everything(seed):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = True
+seed_everything(41) # Seed 고정
 
 
 def run():
@@ -44,14 +56,12 @@ def run():
 
     # define loss function (criterion) and optimizer
     criterion = create.create_criterion(args, numberofclass)
-    optimizer = create.create_optimizer(args, model)
+    optimizer, scheduler = get_optimizer_and_scheduler(model, args, len(train_loader))
     cudnn.benchmark = True
 
     for epoch in range(0, args.epochs):
-        adjust_learning_rate(optimizer, epoch, args)
-
         # train for one epoch
-        train_loss = train(train_loader, model, criterion, optimizer, epoch, args)
+        train_loss = train_one_epoch(train_loader, model, criterion, optimizer, scheduler, epoch, args)
 
         # evaluate on validation set
         err1, err5, val_loss = validate(val_loader, model, criterion, epoch, args)
@@ -82,7 +92,7 @@ def run():
 
 
 
-def train(train_loader, model, criterion, optimizer, epoch, args):
+def train_one_epoch(train_loader, model, criterion, optimizer, scheduler, epoch, args):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -104,8 +114,6 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
 
         # compute output
         output = model(input)
-        # print('train tuple:',type(output))
-        # print(len(output))
         if args.distil > 0:
             loss = criterion(input, output, target)
         else:
@@ -125,6 +133,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        scheduler.step()
 
         # measure elapsed time
         batch_time.update(time.time() - end)
@@ -211,5 +220,5 @@ if __name__ == '__main__':
             temp = (args.net_type+str(args.depth)+'_'+args.dataset+'_'+'b'+str(args.batch_size)+'_'+'s'+str(args.insize))
         else:
             temp = (args.net_type+'_'+args.dataset+'_'+'b'+str(args.batch_size)+'_'+'s'+str(args.insize)+'_distil-'+str(args.distil))
-        wandb.init(project='self-directed-research', name=temp, entity='jaejungscene')
+        wandb.init(project='comparsion', name=temp, entity='jaejungscene')
     run()
