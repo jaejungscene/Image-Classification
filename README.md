@@ -1,4 +1,3 @@
-# self-directed research
 - implemented model: resnet, se-resnet, cbam-resnet
 - pretrained and fine-tuned model: ViT, DeiT
 
