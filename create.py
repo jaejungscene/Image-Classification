@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch
 # from pytorch_pretrained_vit import ViT
 from torchvision import models
-import resnet as RN
+import model.resnet as RN
 from distillationloss import DistillationLoss
 
 def create_criterion(args, numclass):
