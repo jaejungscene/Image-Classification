@@ -99,7 +99,6 @@ def train_one_epoch(train_loader, model, criterion, optimizer, scheduler, epoch,
     top1 = AverageMeter()
     top5 = AverageMeter()
 
-    # switch to train mode
     model.train()
 
     end = time.time()
@@ -166,7 +165,6 @@ def validate(val_loader, model, criterion, epoch, args):
     top1 = AverageMeter()
     top5 = AverageMeter()
 
-    # switch to evaluate mode
     model.eval()
 
     end = time.time()
